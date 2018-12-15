@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<style type="text/css">
+			table{
+				width: 600px;
+				text-align: center;
+				border-collapse: collapse;
+				background-color: blanchedalmond;
+			}
+			table td,table th{
+				padding: 5px;
+			}
+			.biaohong{
+				color: red;
+			}
+			.none {
+				display: none;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="init">
+			   <input type="text" name="" id="biao" placeholder="请输入新闻标题" value="" /><br>
+			   <input type="text" name="" id="addr" placeholder="请输入新闻链接地址" value="" /><br>
+				是否标红： 是<input type="radio" name="1" id="b1" value="1" />
+				 否<input type="radio" name="1" id="b2" value="0" /><br>
+				 <select id="sel">
+					 <option value ="国际">国际</option>
+					 <option value ="娱乐">娱乐</option>
+				 </select><br>
+				 <button type="button" id="btn">提交</button>
+				 <button type="button" class="none "  id="xiu">完成修改</button>
+		</div>
+		<table border="" cellspacing="" cellpadding="">
+			<thead><tr>
+			<th>新闻标题</th>
+			<th>新闻链接</th>
+			<th>新闻类别</th>
+			<th>操作</th>
+			</tr></thead>
+			<tbody>
+			</tbody>
+		</table>
+	</body>
+	<script src="js/jquery-3.3.1.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		
+		//提交一条数据
+		   $("#btn").click(function(){
+				 if ($("#biao").val()&&$("#addr").val()) {
+				 		 $.ajax({
+					 type:"post",
+					 url:"http://localhost:8080/add",
+					 data:{
+						 biao:$("#biao").val(),
+						 addr:$("#addr").val(),
+						 color:$("#b1")[0].checked?1:0,
+						 lei:$("#sel").val(),
+					 },
+					 success(res){
+						 console.log(res)
+						 $("#biao").val("")
+						$("#addr").val("")
+						show()
+					 }
+				 })
+				 } else{
+				 	alert("请输入完整")
+				 }
+				 
+				 
+			
+			 })
+			 
+			 //渲染页面
+			 show()
+			 function show(){
+				 $.ajax({
+					 type:"get",
+					 url:"http://localhost:8080/getdata",
+					 success(res){
+						 console.log(res)
+						 var str="";
+						 for (var i = 0; i < res.length; i++) {
+							 
+							 if (res[i].color==0) {
+							 	str+=`
+							 <tr>
+							 	<td>${res[i].biao}</td>
+								`
+							 } else{
+							 	str+=`
+							 	<tr>
+							 	<td  class=biaohong  >${res[i].biao}</td>
+							 	`
+							 }
+							 str+=	`<td>${res[i].addr}</td>
+							 	<td>${res[i].lei}</td>
+							 	<td>
+							 		<a href="####" onclick=unp('${res[i]._id}') >修改</a>
+							 		<a href="####" onclick=del('${res[i]._id}') >删除</a>
+							 	</td>
+							 </tr>
+							 
+							 `
+						 }
+						 $("tbody").html(str)
+					 }
+				 })
+			 }
+			 
+			 
+			 //修改功能
+			 var xiuid=""
+			 function unp(id){
+				 $("#btn").hide();
+				 $("#xiu").show();
+				 
+				 $.ajax({
+				 	type:"post",
+				 	url:"http://localhost:8080/unp/"+id,     //params传值
+				 	success(res){
+						
+						//回显输入框和选项
+						$("#biao").val(res.biao)
+						$("#addr").val(res.addr)
+						$("#sel").val(res.lei)
+						$("#b1").prop("checked",res.color*1?true:false)
+						$("#b2").prop("checked",res.color*1?false:true)
+						xiuid=res._id
+				 	}
+				 })
+			 }
+			 
+			 //完成修改
+			 $("#xiu").click(function(){
+				 if ($("#biao").val()&&$("#addr").val()) {
+					  $.ajax({
+				 	type:"post",
+				 	url:"http://localhost:8080/xiu",
+				 	data:{
+				 		biao:$("#biao").val(),
+				 		addr:$("#addr").val(),
+				 		color:$("#b1")[0].checked?1:0,
+				 		lei:$("#sel").val(),
+						id:xiuid
+				 	},
+				 	success(res){
+				 		$("#biao").val("")
+				 	$("#addr").val("")
+				 	show()
+					$("#btn").show();
+					$("#xiu").hide();
+				 	}
+				 })
+				 }else{
+					 alert("请输入完整")
+				 }
+				
+			 })
+			 
+			 
+			 //删除功能
+			 function del(id){
+				 console.log(id)
+				$.ajax({
+					type:"post",
+					url:"http://localhost:8080/dels",
+					data:{
+						id:id
+					},
+					success(res){
+					console.log(res)
+					show()
+				 }
+			 })
+			 }
+	</script>
+	
+	<script type="text/javascript">
+		
+		
+		//附加题
+		var str="http://www.baidu.com/news?query=javascript&limt=15&skip=0";
+		
+		
+		function bian(a){
+			
+		var a=str.split("?");
+		var b=a[1].split("&");
+		var obj={}
+		for (var i = 0; i < b.length; i++) {
+			var c=b[i].split("=")
+			    obj[c[0]]=c[1]
+			
+		}
+		return obj
+		}
+		
+		console.log(bian(str))
+	</script>
+	
+</html>
